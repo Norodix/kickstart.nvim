@@ -104,6 +104,10 @@ vim.keymap.set('n', '<leader>bc', ':bdelete<CR>', { desc = 'Center screen after 
 vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = 'Center screen after next in search' })
 vim.keymap.set('n', '<leader>bp', ':bprev<CR>', { desc = 'Center screen after next in search' })
 
+-- nnn file picker
+vim.keymap.set('n', '<C-n>', ':NnnExplorer -HAoc<CR>', { desc = 'Open nnn explorer on the side' })
+vim.keymap.set('n', '<leader>n', ':NnnPicker -HAoc<CR>', { desc = 'Open nnn explorer in a floating window' })
+
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
@@ -136,6 +140,9 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+
+-- TODO add remember last position before close option somehow
+-- TODO allow telescope to scroll up/down with ctrl+(J/K)
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -186,6 +193,27 @@ require('lazy').setup({
 
   -- "gc" to comment visual regions/lines
   { 'numToStr/Comment.nvim', opts = {} },
+
+  -- nnn file picker
+  {
+    'luukvbaal/nnn.nvim',
+    opts = {},
+    config = function()
+      local cfg = {}
+      local builtin = require('nnn').builtin
+      local mappings = {
+        { '<C-t>', builtin.open_in_tab }, -- open file(s) in tab
+        { '<C-s>', builtin.open_in_split }, -- open file(s) in split
+        { '<C-v>', builtin.open_in_vsplit }, -- open file(s) in vertical split
+        { '<C-p>', builtin.open_in_preview }, -- open file in preview split keeping nnn focused
+        { '<C-y>', builtin.copy_to_clipboard }, -- copy file(s) to clipboard
+        { '<C-w>', builtin.cd_to_path }, -- cd to file directory
+        { '<C-e>', builtin.populate_cmdline }, -- populate cmdline (:) with file(s)
+      }
+      cfg['mappings'] = mappings
+      require('nnn').setup(cfg)
+    end,
+  },
 
   -- Here is a more advanced example where we pass configuration
   -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
