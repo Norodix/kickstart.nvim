@@ -144,6 +144,14 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 -- TODO add remember last position before close option somehow
 -- TODO allow telescope to scroll up/down with ctrl+(J/K)
 
+-- Do not expand comments when starting new lines
+vim.api.nvim_create_autocmd('BufEnter', {
+  callback = function()
+    vim.opt.formatoptions:remove { 'c', 'r', 'o' }
+  end,
+  desc = 'Disable New Line Comment',
+})
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -803,6 +811,7 @@ require('lazy').setup({
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup()
+      require('mini.align').setup()
 
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
