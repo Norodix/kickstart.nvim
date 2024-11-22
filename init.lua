@@ -105,8 +105,9 @@ vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = 'Center screen after ne
 vim.keymap.set('n', '<leader>bp', ':bprev<CR>', { desc = 'Center screen after next in search' })
 
 -- nnn file picker
-vim.keymap.set('n', '<C-n>', ':NnnExplorer -HAoc<CR>', { desc = 'Open nnn explorer on the side' })
-vim.keymap.set('n', '<leader>n', ':NnnPicker -HAoc<CR>', { desc = 'Open nnn explorer in a floating window' })
+vim.keymap.set('n', '<C-n>', ':NnnExplorer -HAoc %:p:h<CR>', { desc = 'Open nnn explorer on the side' })
+vim.keymap.set('n', '<leader>n', ':NnnPicker -HAoc %:p:h<CR>', { desc = 'Open nnn explorer in a floating window' })
+vim.keymap.set('n', '<leader>gn', ':NnnPicker -HAoc<CR>', { desc = 'Open nnn explorer in a floating window' })
 
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
@@ -148,6 +149,14 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 vim.api.nvim_create_autocmd('BufEnter', {
   callback = function()
     vim.opt.formatoptions:remove { 'c', 'r', 'o' }
+  end,
+  desc = 'Disable New Line Comment',
+})
+
+-- Use vim sleuth on unknown file types
+vim.api.nvim_create_autocmd('BufEnter', {
+  callback = function()
+    vim.cmd 'silent! Sleuth'
   end,
   desc = 'Disable New Line Comment',
 })
@@ -878,7 +887,7 @@ require('lazy').setup({
   -- require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
