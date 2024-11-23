@@ -614,6 +614,12 @@ require('lazy').setup({
           end,
         },
       }
+
+      -- Other lspconfig that is not available in mason
+      local lspconfig = require 'lspconfig'
+      lspconfig.gdscript.setup {
+        -- Server-specific settings. See `:help lspconfig-setup`
+      }
     end,
   },
 
