@@ -11,7 +11,8 @@ return {
   },
   cmd = 'Neotree',
   keys = {
-    { '\\', ':Neotree reveal<CR>', { desc = 'NeoTree reveal' } },
+    { '\\', ':Neotree reveal dir=%:p:h<CR>', { desc = 'NeoTree reveal at the current buffer path' } },
+    { 'g\\', ':Neotree reveal<CR>', { desc = 'NeoTree reveal in cwd' } },
   },
   opts = {
     filesystem = {
