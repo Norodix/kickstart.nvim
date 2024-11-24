@@ -880,6 +880,13 @@ require('lazy').setup({
     end,
   },
 
+  {
+    'voldikss/vim-floaterm',
+    config = function()
+      vim.keymap.set('n', '<leader>gi', ':FloatermNew --width=0.8 --height=0.8 --cwd=<buffer>  gitui<CR>', { desc = 'Open gitui in a floating window' })
+    end,
+  },
+
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
