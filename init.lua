@@ -104,6 +104,9 @@ vim.keymap.set('n', '<leader>bc', ':bdelete<CR>', { desc = 'Center screen after 
 vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = 'Center screen after next in search' })
 vim.keymap.set('n', '<leader>bp', ':bprev<CR>', { desc = 'Center screen after next in search' })
 
+-- Neogen
+vim.keymap.set('n', '<leader>dd', ':Neogen<CR>', { desc = 'Neogen, generate doxygen documentation' })
+
 -- nnn file picker
 vim.keymap.set('n', '<C-n>', ':NnnExplorer -HAoc %:p:h<CR>', { desc = 'Open nnn explorer on the side' })
 vim.keymap.set('n', '<leader>n', ':NnnPicker -HAoc %:p:h<CR>', { desc = 'Open nnn explorer in a floating window' })
@@ -214,6 +217,13 @@ require('lazy').setup({
   -- "gc" to comment visual regions/lines
   { 'numToStr/Comment.nvim', opts = {} },
 
+  {
+
+  {
+    'danymat/neogen',
+    config = true,
+  },
+
   -- nnn file picker
   {
     'luukvbaal/nnn.nvim',
@@ -228,6 +238,7 @@ require('lazy').setup({
         { '<C-p>', builtin.open_in_preview }, -- open file in preview split keeping nnn focused
         { '<C-y>', builtin.copy_to_clipboard }, -- copy file(s) to clipboard
         { '<C-w>', builtin.cd_to_path }, -- cd to file directory
+        { '<C-g>', builtin.cd_to_path }, -- cd to file directory
         { '<C-e>', builtin.populate_cmdline }, -- populate cmdline (:) with file(s)
       }
       cfg['mappings'] = mappings
@@ -680,12 +691,13 @@ require('lazy').setup({
           -- `friendly-snippets` contains a variety of premade snippets.
           --    See the README about individual language/framework/plugin snippets:
           --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          {
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load()
+              require('luasnip').filetype_extend('c', { 'cdoc' })
+            end,
+          },
         },
       },
       'saadparwaiz1/cmp_luasnip',
@@ -851,7 +863,7 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'doxygen' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
