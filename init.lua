@@ -218,8 +218,6 @@ require('lazy').setup({
   { 'numToStr/Comment.nvim', opts = {} },
 
   {
-
-  {
     'danymat/neogen',
     config = true,
   },
