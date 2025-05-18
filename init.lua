@@ -226,6 +226,7 @@ require('lazy').setup({
   {
     'luukvbaal/nnn.nvim',
     opts = {},
+    lazy = false,
     config = function()
       local cfg = {}
       local builtin = require('nnn').builtin
@@ -382,6 +383,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>sl', builtin.lsp_references, { desc = '[S]earch [L]SP references' })
+      vim.keymap.set('n', '<leader>sm', builtin.man_pages, { desc = '[S]earch [M]an pages' }, { 'ALL' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
 
@@ -502,6 +504,8 @@ require('lazy').setup({
           map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
           -- Show code diagnostics in a floating window
           map('<leader>cd', vim.diagnostic.open_float, '[C]ode [D]iagnostic')
+          map('<leader>cn', vim.diagnostic.goto_next, '[C]ode [N]ext')
+          map('<leader>cp', vim.diagnostic.goto_prev, '[C]ode [P]rev')
 
           -- Opens a popup that displays documentation about the word under your cursor
           --  See `:help K` for why this keymap.
@@ -569,12 +573,12 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {
-        --   cmd = {
-        --     vim.fn.stdpath 'data' .. '/mason/bin/clangd',
-        --     '--header-insertion=never',
-        --   },
-        -- },
+        clangd = {
+          cmd = {
+            vim.fn.stdpath 'data' .. '/mason/bin/clangd',
+            '--header-insertion=never',
+          },
+        },
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
