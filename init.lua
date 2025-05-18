@@ -145,6 +145,9 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Add custom keymap so end of line is actually useful
+vim.keymap.set('n', 'á', '$', { desc = 'Custom end of line' })
+
 -- TODO add remember last position before close option somehow
 -- TODO allow telescope to scroll up/down with ctrl+(J/K)
 
