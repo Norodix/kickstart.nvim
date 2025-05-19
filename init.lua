@@ -908,7 +908,9 @@ require('lazy').setup({
   {
     'voldikss/vim-floaterm',
     config = function()
-      vim.keymap.set('n', '<leader>gi', ':FloatermNew --width=0.8 --height=0.8 --cwd=<buffer>  gitui<CR>', { desc = 'Open gitui in a floating window' })
+      vim.keymap.set('n', '<leader>gi', ':FloatermNew --width=0.8 --height=0.8 --cwd=<buffer>  gitui<CR>', { desc = 'Open [GI]tui in a floating window' })
+      vim.keymap.set('n', '<leader>fl', ':FloatermToggle<CR>', { desc = 'Toggle [Fl]oating terminal' })
+      vim.keymap.set('t', '<leader>fl', '<C-\\><C-n>:FloatermToggle<CR>', { desc = 'Toggle [Fl]oating terminal' })
     end,
   },
 
