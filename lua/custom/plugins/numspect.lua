@@ -1,6 +1,11 @@
 -- TODO make it an actual plugin
 -- TODO display it nicely in a hovering window
 
+local Numspect = {}
+
+local dbprint = function(...) end
+-- local dbprint = print
+
 local iec = function(num)
   local prefix = { 'B', 'KiB', 'MiB', 'GiB', 'TiB', 'Pi', 'Ei' }
   -- prefix index
@@ -36,26 +41,26 @@ local get_word = function()
       local to = math.max(s_start[3], s_end[3])
       local line = vim.fn.getline(s_start[2])
       ret = string.sub(line, from, to)
-      print(string.format('selected %d to %d in line %d: %s', s_start[3], s_end[3], s_start[2], ret))
+      dbprint(string.format('selected %d to %d in line %d: %s', s_start[3], s_end[3], s_start[2], ret))
       return ret
     else
-      print(string.format('different lines %d vs %d', s_start[2], s_end[2]))
+      dbprint(string.format('different lines %d vs %d', s_start[2], s_end[2]))
     end
   else
-    print('Not visual mode ' .. m)
+    dbprint('Not visual mode ' .. m)
   end
   -- visual did not work for any reason, do non-visual
   return vim.fn.expand '<cword>'
 end
 
 -- 100000
-local bibytes = function()
+Numspect.bibytes = function()
   local word = get_word()
   -- TODO expand as number + SI unit
   -- handle all SI units MiB, M, MB as Mibi
   local unit = '([B|K|M|G|T|P]?)i?B?'
   local numpart, unitpart
-  numpart, unitpart = string.match(word, '([0x]*[0-9a-fA-F]+)' .. unit)
+  numpart, unitpart = string.match(word, '([0x]*[.,0-9a-fA-F]+)' .. unit)
 
   local num = tonumber(numpart)
   if num ~= nil then
@@ -68,17 +73,10 @@ local bibytes = function()
     print(string.format('%s: 0x%X     %d     %s', word, num, num, iec(num)))
   else
     print('NaN ' .. word)
-    -- print(numpart)
   end
 end
 
--- test keymaps
-vim.keymap.set('n', '?', bibytes)
-vim.keymap.set('v', '?', bibytes)
-vim.keymap.set('v', 'gvv', function()
-  get_word()
-end)
-
+-- Test values
 -- 10G
 -- 1GiB
 -- 1Mib
@@ -93,3 +91,5 @@ end)
 -- 0x1000000000
 -- 0x1000000000000
 -- 10T
+
+return Numspect
