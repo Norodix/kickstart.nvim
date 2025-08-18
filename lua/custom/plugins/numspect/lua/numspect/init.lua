@@ -53,6 +53,8 @@ local get_word = function()
   return vim.fn.expand '<cword>'
 end
 
+Numspect.config = function(opts) end
+
 -- 100000
 Numspect.bibytes = function()
   local word = get_word()
@@ -91,5 +93,11 @@ end
 -- 0x1000000000
 -- 0x1000000000000
 -- 10T
+
+Numspect.setup = function(opts)
+  print 'Hello from numspect setup'
+  vim.keymap.set('n', '?', Numspect.bibytes)
+  vim.keymap.set('v', '?', Numspect.bibytes)
+end
 
 return Numspect
