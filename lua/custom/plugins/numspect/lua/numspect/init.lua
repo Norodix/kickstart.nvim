@@ -1,5 +1,7 @@
--- TODO make it an actual plugin
--- TODO display it nicely in a hovering window
+-- TODO make it possible to ignore default keymaps
+local options = {
+  use_hover = true,
+}
 
 local Numspect = {}
 
@@ -29,6 +31,30 @@ local mult = {
   T = math.pow(1024, 4),
   P = math.pow(1024, 5),
 }
+
+local print_window = function(str)
+  local buf = vim.api.nvim_create_buf(false, true) -- non-listed scratch buffer
+
+  opts = {
+    relative = 'cursor',
+    row = -1,
+    col = 0,
+    focusable = false,
+    mouse = false,
+    height = 1,
+    width = string.len(str) + 2,
+    style = 'minimal',
+  }
+  local win = vim.api.nvim_open_win(buf, false, opts)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { ' ' .. str })
+  vim.api.nvim_create_autocmd({ 'CursorMoved' }, {
+    once = true,
+    callback = function(ev)
+      vim.api.nvim_win_close(win, true)
+      vim.api.nvim_buf_delete(buf, { force = true })
+    end,
+  })
+end
 
 local get_word = function()
   local m = vim.api.nvim_get_mode()['mode']
@@ -72,7 +98,11 @@ Numspect.bibytes = function()
       end
     end
     local formatted = iec(num)
-    print(string.format('%s: 0x%X     %d     %s', word, num, num, iec(num)))
+    local str = string.format('%s: 0x%X     %d     %s', word, num, num, iec(num))
+    print(str)
+    if options.use_hover then
+      print_window(str)
+    end
   else
     print('NaN ' .. word)
   end
@@ -82,6 +112,7 @@ end
 -- 10G
 -- 1GiB
 -- 1Mib
+-- 1Ma
 -- 1.1M
 -- 0 1000 0x1000 0x2000+3
 -- 0x1000
@@ -95,7 +126,10 @@ end
 -- 10T
 
 Numspect.setup = function(opts)
-  print 'Hello from numspect setup'
+  -- Merge the option tables
+  for k, v in pairs(opts) do
+    options[k] = v
+  end
   vim.keymap.set('n', '?', Numspect.bibytes)
   vim.keymap.set('v', '?', Numspect.bibytes)
 end
