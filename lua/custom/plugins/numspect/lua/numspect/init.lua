@@ -1,13 +1,15 @@
--- TODO make it possible to ignore default keymaps
+local Numspect = {}
 
+-- Default options
 local options = {
   use_hover = true,
+  mappings = {
+    ['?'] = 'trigger',
+  },
 }
 
 local win = nil
 local buf = nil
-
-local Numspect = {}
 
 local dbprint = function(...) end
 -- local dbprint = print
@@ -167,8 +169,11 @@ Numspect.setup = function(opts)
   for k, v in pairs(opts) do
     options[k] = v
   end
-  vim.keymap.set('n', '?', Numspect.trigger)
-  vim.keymap.set('v', '?', Numspect.trigger)
+  -- Set up key mappings
+  for k, v in pairs(options.mappings) do
+    vim.keymap.set('n', k, Numspect[v])
+    vim.keymap.set('v', k, Numspect[v])
+  end
 end
 
 return Numspect
