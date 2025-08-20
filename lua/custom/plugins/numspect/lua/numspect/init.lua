@@ -2,9 +2,9 @@ local Numspect = {}
 
 -- Default options
 local options = {
-  use_hover = true,
+  use_hover = true, -- If true the inspection is shown in a hovering window, otherwise only printed
   mappings = {
-    ['?'] = 'trigger',
+    ['?'] = 'trigger', -- The main (and only atm) action that shows the number inspection
   },
 }
 
@@ -25,7 +25,7 @@ local iec = function(num)
   end
   -- print(num_cpy)
   if pi <= #prefix then
-    return string.format('%.3f %s', num_cpy, prefix[pi])
+    return string.format('%.3f%s', num_cpy, prefix[pi])
   end
 end
 
