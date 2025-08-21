@@ -102,12 +102,19 @@ local get_word = function()
   return vim.fn.expand '<cword>'
 end
 
-Numspect.config = function(opts) end
-
 -- Parse the input value, compute the conversions and display it
-Numspect.bibytes = function()
-  local word = get_word()
-  -- TODO expand as number + SI unit
+local bibytes = function(arg)
+  -- Get word from argument, otherwise parse it from buffer
+  local word = ''
+  if type(arg) == 'string' then
+    if string.len(arg) ~= 0 then
+      word = arg
+    end
+  end
+  if string.len(word) == 0 then
+    word = get_word()
+  end
+
   -- handle all SI units MiB, M, MB as Mibi
   local unit = '%s*([BKMGTP]?)i?B?'
   local numpart, unitpart
@@ -131,9 +138,9 @@ Numspect.bibytes = function()
   end
 end
 
-Numspect.trigger = function()
+Numspect.trigger = function(arg)
   if win == nil then
-    Numspect.bibytes()
+    bibytes(arg)
   else
     vim.api.nvim_set_current_win(win)
     vim.api.nvim_buf_set_keymap(0, 'n', '<Esc>', '', { callback = close_hover })
@@ -144,6 +151,20 @@ Numspect.trigger = function()
     vim.api.nvim_buf_set_keymap(0, 'n', 'q', '', { callback = close_hover })
     vim.api.nvim_buf_set_keymap(0, 'n', '?', '', { callback = close_hover })
   end
+end
+
+-- Lua functions are called with a single table argument containing arguments and modifiers. The most important are:
+-- name: a string with the command name
+-- fargs: a table containing the command arguments split by whitespace (see <f-args>)
+-- bang: true if the command was executed with a ! modifier (see <bang>)
+-- line1: the starting line number of the command range (see <line1>)
+-- line2: the final line number of the command range (see <line2>)
+-- range: the number of items in the command range: 0, 1, or 2 (see <range>)
+-- count: any count supplied (see <count>)
+-- smods: a table containing the command modifiers (see <mods>)
+local user_command = function(t)
+  local arg = table.concat(t.fargs, ' ')
+  Numspect.trigger(arg)
 end
 
 -- Test values
@@ -174,6 +195,7 @@ Numspect.setup = function(opts)
     vim.keymap.set('n', k, Numspect[v])
     vim.keymap.set('v', k, Numspect[v])
   end
+  vim.api.nvim_create_user_command('Numspect', user_command, { nargs = '*' })
 end
 
 return Numspect
