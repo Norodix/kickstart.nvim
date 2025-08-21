@@ -54,4 +54,5 @@ This way you can copy and paste different representations easily.
 You can exit the window by pressing one of `<Esc> <CR> <leader> j k`.
 
 By default the plugin parses the word the cursor is on.
-You can also use it in visual mode, and the selected text is passed to the plugin.
+You can also use it in visual mode `v` (but not in line visual mode `V`), and the selected text is passed to the plugin.
+This way you can parse something like `1.1 MiB`, where both `.` and the space would break a word otherwise.

@@ -109,7 +109,7 @@ Numspect.bibytes = function()
   local word = get_word()
   -- TODO expand as number + SI unit
   -- handle all SI units MiB, M, MB as Mibi
-  local unit = '([BKMGTP]?)i?B?'
+  local unit = '%s*([BKMGTP]?)i?B?'
   local numpart, unitpart
   numpart, unitpart = string.match(word, '([0x]*[.,0-9a-fA-F]+)' .. unit)
 
