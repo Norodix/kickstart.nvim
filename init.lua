@@ -299,6 +299,15 @@ require('lazy').setup({
     end,
   },
   {
+    'elanmed/fzf-lua-frecency.nvim',
+    dependencies = { 'ibhagwan/fzf-lua' },
+    opts = {},
+    config = function()
+      local f = require 'fzf-lua-frecency'
+      vim.keymap.set('n', '<leader>s.', f.frecency, { desc = '[S]earch Recent Files ("." for repeat)' })
+    end,
+  },
+  {
     'ibhagwan/fzf-lua',
     -- optional for icon support
     dependencies = { 'nvim-tree/nvim-web-devicons' },
@@ -330,7 +339,6 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sm', function()
         builtin.manpages { sections = { 'ALL' } }
       end, { desc = '[S]earch [M]an pages' })
-      vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
       vim.keymap.set('n', '<leader>/', builtin.grep_curbuf, { desc = '[/] Fuzzily search in current buffer' })
       -- TODO live grep in open files
