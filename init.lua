@@ -347,6 +347,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sn', function()
         builtin.files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
+      builtin.register_ui_select()
     end,
   },
 
