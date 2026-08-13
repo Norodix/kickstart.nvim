@@ -148,6 +148,23 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 -- Add custom keymap so end of line is actually useful
 vim.keymap.set('n', 'á', '$', { desc = 'Custom end of line' })
 
+vim.api.nvim_create_user_command('Pos', function()
+  local name = vim.api.nvim_buf_get_name(0)
+  local pwd = vim.fn.getcwd()
+  -- use the relative path if possible
+  local _, subpos = string.find(name, pwd, 1, true)
+  if subpos then
+    name = string.sub(name, subpos + 1)
+  end
+  if name:sub(1, 1) == '/' then
+    name = name:sub(2)
+  end
+  local linenum = vim.api.nvim_win_get_cursor(0)
+  local fulltext = name .. ':' .. linenum[1]
+  vim.print(fulltext)
+  vim.fn.setreg('+', fulltext)
+end, {})
+
 -- TODO add remember last position before close option somehow
 
 -- Do not expand comments when starting new lines
@@ -156,6 +173,15 @@ vim.api.nvim_create_autocmd('BufEnter', {
     vim.opt.formatoptions:remove { 'c', 'r', 'o' }
   end,
   desc = 'Disable New Line Comment',
+})
+
+-- Do not expand comments when starting new lines
+vim.api.nvim_create_autocmd('BufEnter', {
+  pattern = 'COMMIT_EDITMSG',
+  callback = function()
+    vim.opt.colorcolumn = '72'
+  end,
+  desc = 'Commit message body colored column',
 })
 
 -- Use vim sleuth on unknown file types
@@ -176,7 +202,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
   callback = function()
-    vim.highlight.on_yank()
+    vim.hl.on_yank()
   end,
 })
 
@@ -316,7 +342,9 @@ require('lazy').setup({
     ---@module "fzf-lua"
     ---@type fzf-lua.Config|{}
     ---@diagnostic disable: missing-fields
-    opts = {},
+    opts = {
+      ui_select = true,
+    },
     config = function(plugin, opts)
       local builtin = require 'fzf-lua'
       builtin.setup { opts }
@@ -328,6 +356,7 @@ require('lazy').setup({
         builtin.files { no_ignore = true }
       end, { desc = '[S]earch all [F]iles' })
       vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]earch modes' })
+      vim.keymap.set('n', '<leader>so', builtin.oldfiles, { desc = '[S]earch [O]ld files' })
       vim.keymap.set('n', '<leader>sw', builtin.grep_cword, { desc = '[S]earch current [W]ord' })
       vim.keymap.set('n', '<leader>sW', builtin.grep_cWORD, { desc = '[S]earch current [W]ORD' })
       vim.keymap.set('n', '<leader>sv', builtin.grep_visual, { desc = '[S]earch [V]isual' })
@@ -416,7 +445,7 @@ require('lazy').setup({
           map('gd', fzf.lsp_definitions, '[G]oto [D]efinition')
 
           -- Find references for the word under your cursor.
-          map('gr', fzf.lsp_references, '[G]oto [R]eferences')
+          -- map('gr', fzf.lsp_references, '[G]oto [R]eferences')
 
           -- Jump to the implementation of the word under your cursor.
           --  Useful when your language has ways of declaring types without an actual implementation.
@@ -441,7 +470,7 @@ require('lazy').setup({
 
           -- Execute a code action, usually your cursor needs to be on top of an error
           -- or a suggestion from your LSP for this to activate.
-          map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+          map('<leader>ca', fzf.lsp_code_actions, '[C]ode [A]ction')
           -- Show code diagnostics in a floating window
           map('<leader>cd', vim.diagnostic.open_float, '[C]ode [D]iagnostic')
           map('<leader>cn', vim.diagnostic.goto_next, '[C]ode [N]ext')
@@ -809,8 +838,9 @@ require('lazy').setup({
   },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
-    branch = 'master',
+    branch = 'main',
     build = ':TSUpdate',
+    lazy = false,
     opts = {
       ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'doxygen' },
       -- Autoinstall languages that are not installed
@@ -829,9 +859,6 @@ require('lazy').setup({
 
       -- Prefer git instead of curl in order to improve connectivity in some environments
       require('nvim-treesitter.install').prefer_git = true
-      ---@diagnostic disable-next-line: missing-fields
-      require('nvim-treesitter.configs').setup(opts)
-
       -- There are additional nvim-treesitter modules that you can use to interact
       -- with nvim-treesitter. You should go explore a few and see what interests you:
       --
