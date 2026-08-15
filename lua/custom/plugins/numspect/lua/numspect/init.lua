@@ -79,11 +79,20 @@ local print_window = function(str)
   })
 end
 
+-- Position of the inspected number
+local position = {
+  buffer = 0,
+  line = 0,
+  col_start = 0,
+  col_end = 0,
+}
+
 local get_word = function()
   local m = vim.api.nvim_get_mode()['mode']
   if m == 'v' then
     local s_start = vim.fn.getpos '.'
     local s_end = vim.fn.getpos 'v'
+    position.line = s_start[2]
     if s_start[2] == s_end[2] then
       -- Actuall use visual
       local from = math.min(s_start[3], s_end[3])
@@ -91,6 +100,8 @@ local get_word = function()
       local line = vim.fn.getline(s_start[2])
       local ret = string.sub(line, from, to)
       dbprint(string.format('selected %d to %d in line %d: %s', s_start[3], s_end[3], s_start[2], ret))
+      position.col_start = from
+      position.col_end = to
       return ret
     else
       dbprint(string.format('different lines %d vs %d', s_start[2], s_end[2]))
@@ -99,49 +110,105 @@ local get_word = function()
     dbprint('Not visual mode ' .. m)
   end
   -- visual did not work for any reason, do non-visual
-  return vim.fn.expand '<cword>'
+
+  -- save eventignore
+  local oldignore = vim.opt.eventignore:get()
+  vim.opt.eventignore:append 'CursorMoved'
+  local oldpos = vim.api.nvim_win_get_cursor(0)
+
+  local w = vim.fn.expand '<cword>'
+  vim.fn.search(w, 'bc')
+  -- Convert to 1 index because that is what is used in the above case
+  position.col_start = vim.api.nvim_win_get_cursor(0)[2] + 1
+  vim.fn.search(w, 'ce')
+  position.col_end = vim.api.nvim_win_get_cursor(0)[2] + 1
+  position.line = vim.api.nvim_win_get_cursor(0)[1]
+
+  -- move cursor back to the original position
+  vim.api.nvim_win_set_cursor(0, oldpos)
+  -- restore eventignore
+  vim.opt.eventignore = oldignore
+
+  return w
 end
+
+-- Save the representations of the number so it can be yanked and replaced
+local repr = {
+  word = '',
+  dec = '',
+  hex = '',
+  formatted = '',
+}
 
 -- Parse the input value, compute the conversions and display it
 local bibytes = function(arg)
   -- Get word from argument, otherwise parse it from buffer
-  local word = ''
+  repr.word = ''
   if type(arg) == 'string' then
     if string.len(arg) ~= 0 then
-      word = arg
+      repr.word = arg
     end
   end
-  if string.len(word) == 0 then
-    word = get_word()
+  if string.len(repr.word) == 0 then
+    repr.word = get_word()
   end
 
   -- handle all SI units MiB, M, MB as Mibi
   local unit = '%s*([BKMGTP]?)i?B?'
   local numpart, unitpart
-  numpart, unitpart = string.match(word, '([0x]*[.,0-9a-fA-F]+)' .. unit)
+  numpart, unitpart = string.match(repr.word, '([0x]*[.,0-9a-fA-F]+)' .. unit)
 
-  local num = tonumber(numpart)
-  if num ~= nil then
+  repr.num = tonumber(numpart)
+  if repr.num ~= nil then
     if unitpart then
       if string.len(unitpart) ~= 0 then
-        num = num * mult[unitpart]
+        repr.num = repr.num * mult[unitpart]
       end
     end
-    local formatted = iec(num)
-    local str = string.format('%s: 0x%X     %d     %s', word, num, num, formatted)
-    print(str)
+    -- Save the spelled out representations
+    repr.formatted = iec(repr.num)
+    repr.dec = string.format('%d', repr.num)
+    repr.hex = string.format('0x%X', repr.num)
+    local str = string.format('%s: h:%s   d:%s   i:%s', repr.word, repr.hex, repr.dec, repr.formatted)
+    vim.print(str)
     if options.use_hover then
       print_window(str)
     end
   else
-    print('NaN ' .. word)
+    vim.print('NaN ' .. repr.word)
   end
+end
+
+-- Yank the selected representation to the clipboard
+local function yank_repr(r)
+  dbprint('Yanking ' .. r)
+  -- set clipboard to repr[r]
+  local copyreg = '@'
+  if vim.opt.clipboard._value == 'unnamed' then
+    copyreg = '*'
+  end
+  if vim.opt.clipboard._value == 'unnamedplus' then
+    copyreg = '+'
+  end
+  if repr[r] then
+    vim.fn.setreg(copyreg, repr[r])
+  end
+end
+
+-- Replace the text with the selected representation
+local function replace_repr(r)
+  dbprint('replacing ' .. r)
+  -- Needed for 0 indexing
+  local line = position.line - 1
+  local start = position.col_start - 1
+  vim.api.nvim_buf_set_text(position.buffer, line, start, line, position.col_end, { repr[r] })
 end
 
 Numspect.trigger = function(arg)
   if win == nil then
     bibytes(arg)
   else
+    position.buffer = vim.api.nvim_get_current_buf()
     vim.api.nvim_set_current_win(win)
     vim.api.nvim_buf_set_keymap(0, 'n', '<Esc>', '', { callback = close_hover })
     vim.api.nvim_buf_set_keymap(0, 'n', '<leader>', '', { callback = close_hover })
@@ -149,7 +216,50 @@ Numspect.trigger = function(arg)
     vim.api.nvim_buf_set_keymap(0, 'n', 'j', '', { callback = close_hover })
     vim.api.nvim_buf_set_keymap(0, 'n', 'k', '', { callback = close_hover })
     vim.api.nvim_buf_set_keymap(0, 'n', 'q', '', { callback = close_hover })
-    vim.api.nvim_buf_set_keymap(0, 'n', '?', '', { callback = close_hover })
+
+    vim.api.nvim_buf_set_keymap(0, 'n', 'yh', '', {
+      callback = function()
+        yank_repr 'hex'
+        close_hover()
+      end,
+      desc = '[Y]ank [H]ex representation',
+    })
+    vim.api.nvim_buf_set_keymap(0, 'n', 'yi', '', {
+      callback = function()
+        yank_repr 'formatted'
+        close_hover()
+      end,
+      desc = '[Y]ank [I]EC binary representation',
+    })
+    vim.api.nvim_buf_set_keymap(0, 'n', 'yd', '', {
+      callback = function()
+        yank_repr 'dec'
+        close_hover()
+      end,
+      desc = '[Y]ank [d]ecimal representation',
+    })
+
+    vim.api.nvim_buf_set_keymap(0, 'n', 'rh', '', {
+      callback = function()
+        replace_repr 'hex'
+        close_hover()
+      end,
+      desc = '[R]eplace [H]ex representation',
+    })
+    vim.api.nvim_buf_set_keymap(0, 'n', 'ri', '', {
+      callback = function()
+        replace_repr 'formatted'
+        close_hover()
+      end,
+      desc = '[R]eplace [I]EC binary representation',
+    })
+    vim.api.nvim_buf_set_keymap(0, 'n', 'rd', '', {
+      callback = function()
+        replace_repr 'dec'
+        close_hover()
+      end,
+      desc = '[R]eplace [d]ecimal representation',
+    })
   end
 end
 
