@@ -399,11 +399,7 @@ require('lazy').setup({
 
       -- Useful status updates for LSP.
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim', opts = {} },
-
-      -- `neodev` configures Lua LSP for your Neovim config, runtime and plugins
-      -- used for completion, annotations and signatures of Neovim apis
-      { 'folke/neodev.nvim', opts = {} },
+      { 'j-hui/fidget.nvim',       opts = {} },
     },
     config = function()
       -- Brief aside: **What is LSP?**
@@ -482,8 +478,8 @@ require('lazy').setup({
           map('<leader>ca', fzf.lsp_code_actions, '[C]ode [A]ction')
           -- Show code diagnostics in a floating window
           map('<leader>cd', vim.diagnostic.open_float, '[C]ode [D]iagnostic')
-          map('<leader>cn', vim.diagnostic.goto_next, '[C]ode [N]ext')
-          map('<leader>cp', vim.diagnostic.goto_prev, '[C]ode [P]rev')
+          map('<leader>cn', function() vim.diagnostic.jump({ count = 1 }) end, '[C]ode [N]ext')
+          map('<leader>cp', function() vim.diagnostic.jump({ count = -1 }) end, '[C]ode [P]rev')
 
           -- Opens a popup that displays documentation about the word under your cursor
           --  See `:help K` for why this keymap.
@@ -570,51 +566,67 @@ require('lazy').setup({
         --
 
         lua_ls = {
-          -- cmd = {...},
-          -- filetypes = { ...},
-          -- capabilities = {},
-          settings = {
-            Lua = {
-              completion = {
-                callSnippet = 'Replace',
+          on_init = function(client)
+            if client.workspace_folders then
+              local path = client.workspace_folders[1].name
+              if path ~= vim.fn.stdpath 'config' and (vim.uv.fs_stat(path .. '/.luarc.json') or vim.uv.fs_stat(path .. '/.luarc.jsonc')) then
+                return
+              end
+            end
+
+            client.config.settings.Lua = vim.tbl_deep_extend('force', client.config.settings.Lua, {
+              runtime = {
+                -- Tell the language server which version of Lua you're using (most
+                -- likely LuaJIT in the case of Neovim)
+                version = 'LuaJIT',
+                -- Tell the language server how to find Lua modules same way as Neovim
+                -- (see `:h lua-module-load`)
+                path = {
+                  'lua/?.lua',
+                  'lua/?/init.lua',
+                },
               },
-              -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-              -- diagnostics = { disable = { 'missing-fields' } },
-            },
+              -- Make the server aware of Neovim runtime files
+              workspace = {
+                checkThirdParty = false,
+                library = {
+                  vim.env.VIMRUNTIME,
+                  -- For LSP Settings Type Annotations: https://github.com/neovim/nvim-lspconfig#lsp-settings-type-annotations
+                  vim.api.nvim_get_runtime_file('lua/lspconfig', false)[1],
+                },
+                -- Or pull in all of 'runtimepath'.
+                -- NOTE: this is a lot slower and will cause issues when working on
+                -- your own configuration.
+                -- See https://github.com/neovim/nvim-lspconfig/issues/3189
+                -- library = vim.api.nvim_get_runtime_file('', true),
+              },
+            })
+          end,
+          settings = {
+            Lua = {},
           },
         },
       }
-      vim.lsp.enable 'gdscript'
 
-      -- Ensure the servers and tools above are installed
-      --  To check the current status of installed tools and/or manually install
-      --  other tools, you can run
-      --    :Mason
-      --
-      --  You can press `g?` for help in this menu.
+      -- Mason tool / LSP installer
       require('mason').setup()
-
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
-        'stylua', -- Used to format Lua code
+        --
       })
+
+      -- Bridges between mason and lspconfig names so the above server names can be used
+      require('mason-lspconfig').setup {}
+      -- Allows automatic installation of tools
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
-      require('mason-lspconfig').setup {
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for tsserver)
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            vim.lsp.config(server_name, server)
-            vim.lsp.enable(server_name)
-          end,
-        },
-      }
+      for servername, serveropts in pairs(servers) do
+        vim.lsp.config(servername, serveropts)
+        vim.lsp.enable 'servername'
+      end
+      vim.lsp.enable 'gdscript'
     end,
   },
 
@@ -872,7 +884,7 @@ require('lazy').setup({
       vim.api.nvim_create_autocmd('FileType', {
         callback = function(ev)
           -- Event match is the filetype match
-          local lang = vim.treesitter.language.get_lang(ev.match)
+          local lang = vim.treesitter.language.get_lang(ev.match) or ""
           -- Load the parser, if successful it can be started
           if vim.treesitter.language.add(lang) then
             vim.treesitter.start()
