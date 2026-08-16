@@ -81,6 +81,7 @@ end
 
 -- Position of the inspected number
 local position = {
+  valid = false,
   buffer = 0,
   line = 0,
   col_start = 0,
@@ -102,6 +103,7 @@ local get_word = function()
       dbprint(string.format('selected %d to %d in line %d: %s', s_start[3], s_end[3], s_start[2], ret))
       position.col_start = from
       position.col_end = to
+      position.valid = true
       return ret
     else
       dbprint(string.format('different lines %d vs %d', s_start[2], s_end[2]))
@@ -123,6 +125,7 @@ local get_word = function()
   vim.fn.search(w, 'ce')
   position.col_end = vim.api.nvim_win_get_cursor(0)[2] + 1
   position.line = vim.api.nvim_win_get_cursor(0)[1]
+  position.valid = true
 
   -- move cursor back to the original position
   vim.api.nvim_win_set_cursor(0, oldpos)
@@ -197,6 +200,10 @@ end
 
 -- Replace the text with the selected representation
 local function replace_repr(r)
+  if not position.valid then
+    vim.print("No valid source position found")
+    return
+  end
   dbprint('replacing ' .. r)
   -- Needed for 0 indexing
   local line = position.line - 1
@@ -205,7 +212,9 @@ local function replace_repr(r)
 end
 
 Numspect.trigger = function(arg)
+  -- Set to false by default
   if win == nil then
+    position.valid = false
     bibytes(arg)
   else
     position.buffer = vim.api.nvim_get_current_buf()
