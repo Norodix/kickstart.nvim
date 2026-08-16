@@ -924,7 +924,7 @@ require('lazy').setup({
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
   -- Add my custom numspect
   {
-    dir = '~/.config/nvim/lua/custom/plugins/numspect',
+    'Norodix/Numspect.nvim',
     opts = {},
   },
 
