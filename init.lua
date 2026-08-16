@@ -252,7 +252,7 @@ require('lazy').setup({
   --    require('Comment').setup({})
 
   -- "gc" to comment visual regions/lines
-  { 'numToStr/Comment.nvim', opts = {} },
+  { 'numToStr/Comment.nvim',    opts = {} },
 
   {
     'danymat/neogen',
@@ -268,14 +268,14 @@ require('lazy').setup({
       local cfg = {}
       local builtin = require('nnn').builtin
       local mappings = {
-        { '<C-t>', builtin.open_in_tab }, -- open file(s) in tab
-        { '<C-s>', builtin.open_in_split }, -- open file(s) in split
-        { '<C-v>', builtin.open_in_vsplit }, -- open file(s) in vertical split
-        { '<C-p>', builtin.open_in_preview }, -- open file in preview split keeping nnn focused
+        { '<C-t>', builtin.open_in_tab },       -- open file(s) in tab
+        { '<C-s>', builtin.open_in_split },     -- open file(s) in split
+        { '<C-v>', builtin.open_in_vsplit },    -- open file(s) in vertical split
+        { '<C-p>', builtin.open_in_preview },   -- open file in preview split keeping nnn focused
         { '<C-y>', builtin.copy_to_clipboard }, -- copy file(s) to clipboard
-        { '<C-w>', builtin.cd_to_path }, -- cd to file directory
-        { '<C-g>', builtin.cd_to_path }, -- cd to file directory
-        { '<C-e>', builtin.populate_cmdline }, -- populate cmdline (:) with file(s)
+        { '<C-w>', builtin.cd_to_path },        -- cd to file directory
+        { '<C-g>', builtin.cd_to_path },        -- cd to file directory
+        { '<C-e>', builtin.populate_cmdline },  -- populate cmdline (:) with file(s)
       }
       cfg['mappings'] = mappings
       require('nnn').setup(cfg)
@@ -315,7 +315,7 @@ require('lazy').setup({
   -- after the plugin has been loaded:
   --  config = function() ... end
 
-  { -- Useful plugin to show you pending keybinds.
+  {                     -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     config = function() -- This is the function that runs, AFTER loading
@@ -897,7 +897,8 @@ require('lazy').setup({
   {
     'voldikss/vim-floaterm',
     config = function()
-      vim.keymap.set('n', '<leader>gi', ':FloatermNew --width=0.8 --height=0.8 --cwd=<buffer>  gitui<CR>', { desc = 'Open [GI]tui in a floating window' })
+      vim.keymap.set('n', '<leader>gi', ':FloatermNew --width=0.8 --height=0.8 --cwd=<buffer>  gitui<CR>',
+        { desc = 'Open [GI]tui in a floating window' })
       vim.keymap.set('n', '<leader>fl', ':FloatermToggle<CR>', { desc = 'Toggle [Fl]oating terminal' })
       vim.keymap.set('t', '<leader>fl', '<C-\\><C-n>:FloatermToggle<CR>', { desc = 'Toggle [Fl]oating terminal' })
     end,

@@ -2,7 +2,7 @@ local Numspect = {}
 
 -- Default options
 local options = {
-  use_hover = true, -- If true the inspection is shown in a hovering window, otherwise only printed
+  use_hover = true,    -- If true the inspection is shown in a hovering window, otherwise only printed
   mappings = {
     ['?'] = 'trigger', -- The main (and only atm) action that shows the number inspection
   },
